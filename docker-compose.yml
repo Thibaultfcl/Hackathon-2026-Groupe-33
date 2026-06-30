@@ -1,5 +1,5 @@
 services:
-  # Serveur d'inférence Ollama (Phi-3.5-Financial).
+  # 1. Serveur d'inférence Ollama (Phi-3.5 + system prompt finance).
   ollama:
     image: ollama/ollama:latest
     container_name: techcorp-ollama
@@ -10,6 +10,11 @@ services:
       - ./infra/ollama:/modelfiles:ro
     environment:
       - OLLAMA_HOST=0.0.0.0:11434
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
     restart: unless-stopped
     # GPU optionnel : décommenter si NVIDIA + nvidia-container-toolkit
     # deploy:
@@ -20,34 +25,52 @@ services:
     #           count: all
     #           capabilities: [gpu]
 
-  # Crée le modèle 'phi35-financial' depuis le Modelfile au démarrage, puis sort.
+  # 2. Crée le modèle 'phi3-financial' depuis le Modelfile, puis sort.
+  #    Nom aligné sur ce qu'attend l'interface web (LLM_MODEL par défaut).
   ollama-init:
     image: ollama/ollama:latest
     container_name: techcorp-ollama-init
     depends_on:
-      - ollama
+      ollama:
+        condition: service_healthy
     volumes:
       - ./infra/ollama:/modelfiles:ro
     environment:
       - OLLAMA_HOST=ollama:11434
     entrypoint: >
-      sh -c "sleep 5 &&
-             ollama pull phi3.5 &&
-             ollama create phi35-financial -f /modelfiles/Modelfile &&
-             echo 'Modele phi35-financial pret.'"
+      sh -c "ollama pull phi3.5 &&
+             ollama create phi3-financial -f /modelfiles/Modelfile &&
+             echo 'Modele phi3-financial pret.'"
     restart: "no"
 
-  # Passerelle API maison (REST propre + CORS) pour l'équipe DEV WEB.
+  # 3. Interface chat Next.js. Attend que le modèle soit créé.
+  web:
+    build: ./web/frontend
+    container_name: techcorp-web
+    ports:
+      - "3000:3000"
+    depends_on:
+      ollama:
+        condition: service_healthy
+      ollama-init:
+        condition: service_completed_successfully
+    environment:
+      - LLM_API_URL=http://ollama:11434/api/chat
+      - LLM_MODEL=phi3-financial
+    restart: unless-stopped
+
+  # 4. Passerelle API maison (REST + CORS + /health) — optionnelle.
   gateway:
     build: ./infra/fastapi_server
     container_name: techcorp-gateway
     ports:
       - "8080:8080"
     depends_on:
-      - ollama
+      ollama:
+        condition: service_healthy
     environment:
       - OLLAMA_URL=http://ollama:11434
-      - MODEL_NAME=phi35-financial
+      - MODEL_NAME=phi3-financial
     restart: unless-stopped
 
 volumes:

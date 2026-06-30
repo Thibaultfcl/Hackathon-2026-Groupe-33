@@ -1,7 +1,7 @@
 # Démarre Ollama pour Phi-3.5-Financial sur Windows.
 # Accessible aux DEV WEB du groupe (bind 0.0.0.0:11434).
 $ErrorActionPreference = "Stop"
-$ModelName = if ($env:MODEL_NAME) { $env:MODEL_NAME } else { "phi35-financial" }
+$ModelName = if ($env:MODEL_NAME) { $env:MODEL_NAME } else { "phi3-financial" }
 $ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
 
 if (-not (Get-Command ollama -ErrorAction SilentlyContinue)) {

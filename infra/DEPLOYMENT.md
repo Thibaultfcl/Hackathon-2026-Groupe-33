@@ -14,9 +14,10 @@
 
 C'est un **adapter LoRA PEFT** (`adapter_config.json` + `adapter_model.safetensors`) pour base `microsoft/Phi-3-mini-4k-instruct`, **pas** un modèle complet ni un GGUF.
 
-- Dans ce dépôt les fichiers sont des **pointeurs git-LFS non résolus** (≈130 octets). Faire `git lfs pull` pour récupérer les vrais poids.
-- Ollama charge le base `phi3.5` + le **system prompt** financier (spécialisation par prompt). Fusionner l'adapter LoRA dans Ollama exige une conversion GGUF (`ADAPTER` directive) → hors scope 7h.
-- Pour servir l'adapter LoRA tel quel : voir `scripts/simple_chat.py` (transformers + peft, nécessite GPU + `git lfs pull`).
+- 🔴 **Décision sécurité (reco CYBER) : on NE charge PAS `models/phi3_financial/`.** Adapter hérité de l'équipe licenciée, suspecté de compromission/poisoning. La stack tire une base **phi3.5 propre** depuis le registre Ollama officiel (`ollama pull phi3.5`). Aucune directive `ADAPTER` dans le Modelfile.
+- ⛔ De toute façon irrécupérable : objets git-LFS = `404 Object does not exist on the server`, aucun `.safetensors` réel en local. Les deux raisons (sécu + absence) vont dans le même sens : adapter écarté.
+- Spécialisation finance assurée par le **system prompt** sur base saine (modèle Ollama `phi3-financial`).
+- Réintégrer l'adapter plus tard exigerait : poids refournis **+ audit/scan sécurité validé** par CYBER, puis merge PEFT → GGUF (`convert_hf_to_gguf.py` llama.cpp) → `FROM ./merged.gguf`. À ne PAS faire sans feu vert sécu.
 
 ---
 
@@ -32,12 +33,22 @@ bash infra/ollama/start.sh          # Linux/macOS/Git-Bash
 infra\ollama\start.ps1
 ```
 
-### Option B — Docker Compose (tout-en-un)
+### Option B — Docker Compose (tout-en-un) ✅ recommandé
+
+Lance **toute la stack d'un coup** : Ollama → création du modèle `phi3-financial` → interface web + passerelle.
 
 ```bash
-docker compose up -d                # lance ollama + crée le modèle + gateway
+docker compose up -d --build        # ollama + ollama-init + web + gateway
 docker compose logs -f ollama-init  # suivre la création du modèle
 ```
+
+| Service | URL | Rôle |
+|---------|-----|------|
+| `ollama` | http://localhost:11434 | Moteur d'inférence |
+| `web` | http://localhost:3000 | Interface chat (attend que le modèle soit prêt) |
+| `gateway` | http://localhost:8080 | API REST + `/health` (optionnel) |
+
+Le service `web` démarre seulement après `ollama-init` (`service_completed_successfully`) → pas de chat sur un modèle inexistant.
 
 ---
 
@@ -47,19 +58,27 @@ docker compose logs -f ollama-init  # suivre la création du modèle
 # Serveur répond
 curl http://localhost:11434/api/tags
 
-# Génération
+# Génération (Git-Bash / Linux : single-quotes OK)
 curl http://localhost:11434/api/generate \
-  -d '{"model":"phi35-financial","prompt":"What is EBITDA?","stream":false}'
+  -d '{"model":"phi3-financial","prompt":"What is EBITDA?","stream":false}'
 
 # Passerelle FastAPI (si lancée)
 curl http://localhost:8080/health
 ```
 
+> ⚠️ **Windows `cmd.exe`** ne gère pas les single-quotes → `invalid character '\''`.
+> Échapper avec des double-quotes :
+> ```cmd
+> curl http://localhost:11434/api/generate -d "{\"model\":\"phi3-financial\",\"prompt\":\"What is EBITDA?\",\"stream\":false}"
+> ```
+> **PowerShell** : `Invoke-RestMethod http://localhost:11434/api/generate -Method Post -Body '{"model":"phi3-financial","prompt":"What is EBITDA?","stream":false}'`
+
 ---
 
 ## 🌐 Accès pour l'équipe DEV WEB
 
-- **Ollama direct** : `http://<IP_INFRA>:11434` — endpoints `/api/generate`, `/api/chat`.
+- **Interface web** : `http://<IP_INFRA>:3000` (incluse dans la stack compose).
+- **Ollama direct** : `http://<IP_INFRA>:11434` — endpoints `/api/generate`, `/api/chat`. Modèle = `phi3-financial`.
 - **Passerelle** : `http://<IP_INFRA>:8080` — `POST /chat`, `GET /health` (indicateur connecté/déconnecté).
 - Le bind `0.0.0.0` (via `OLLAMA_HOST`) rend le serveur joignable sur le LAN.
 - Trouver l'IP : `ipconfig` (Windows) / `ip a` (Linux). Ouvrir le port 11434 (et 8080) dans le pare-feu.

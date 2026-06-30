@@ -1,3 +1,6 @@
+# SÉCURITÉ (reco CYBER) : base phi3.5 PROPRE tirée du registre Ollama officiel.
+# NE PAS charger models/phi3_financial/ (adapter hérité de l'équipe licenciée,
+# suspecté de compromission/poisoning). Aucune directive ADAPTER ici, volontairement.
 FROM phi3.5
 
 SYSTEM """

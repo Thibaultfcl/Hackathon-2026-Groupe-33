@@ -3,7 +3,7 @@
 # Rend le serveur accessible aux DEV WEB du groupe (bind 0.0.0.0:11434).
 set -euo pipefail
 
-MODEL_NAME="${MODEL_NAME:-phi35-financial}"
+MODEL_NAME="${MODEL_NAME:-phi3-financial}"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
 # 0.0.0.0 = accessible depuis le LAN (DEV WEB), pas seulement localhost.

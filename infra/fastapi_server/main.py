@@ -5,7 +5,7 @@ But : exposer une API REST propre + CORS pour l'équipe DEV WEB, et un
 endpoint /health pour l'indicateur "connecté / déconnecté" de l'interface.
 
 Lance : uvicorn main:app --host 0.0.0.0 --port 8080
-Env   : OLLAMA_URL (def http://localhost:11434), MODEL_NAME (def phi35-financial)
+Env   : OLLAMA_URL (def http://localhost:11434), MODEL_NAME (def phi3-financial)
 """
 import os
 import httpx
@@ -14,7 +14,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 OLLAMA_URL = os.environ.get("OLLAMA_URL", "http://localhost:11434").rstrip("/")
-MODEL_NAME = os.environ.get("MODEL_NAME", "phi35-financial")
+MODEL_NAME = os.environ.get("MODEL_NAME", "phi3-financial")
 
 app = FastAPI(title="TechCorp Financial Assistant Gateway", version="1.0.0")
 
