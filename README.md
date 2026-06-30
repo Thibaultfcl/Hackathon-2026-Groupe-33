@@ -1,14 +1,16 @@
 # 🤖 TechCorp AI Chat — Assistant Financier Phi-3.5
 
 Reprise du projet de l'équipe licenciée : valider l'héritage, corriger, **déployer l'assistant financier** Phi-3.5 derrière une interface chat.
+ ```
   Réaliser par le groupe 33 :
-    Frescaline	Thibault	B3 infra
+    Frescaline Thibault	B3 infra
     Noble	Robin	B3 infra
-    Bourguiba	firas	B3 data/IA
+    Bourguiba	Firas	B3 data/IA
     Ferrari	Mattéo	B3 Cyber
-    Mariyanayagam	mickael	B3 data/IA
+    Mariyanayagam	Mickael	B3 data/IA
     MONGORIN SEMEDO BRITO	Luidjy	B3 data/IA
-    Wouhaibi 	Mahdi	b3 dev
+    Wouhaibi Mahdi	b3 dev
+```
 ## 📂 Structure
 
 ```
