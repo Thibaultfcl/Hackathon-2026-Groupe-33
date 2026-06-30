@@ -1,0 +1,96 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --font-display: Georgia, "Iowan Old Style", "Palatino Linotype", serif;
+  --font-body: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  font-family: var(--font-body);
+}
+
+/* Scrollbar discret, esprit "registre" */
+.ledger-scroll::-webkit-scrollbar {
+  width: 6px;
+}
+.ledger-scroll::-webkit-scrollbar-thumb {
+  background-color: rgba(11, 31, 58, 0.2);
+  border-radius: 3px;
+}
+.dark .ledger-scroll::-webkit-scrollbar-thumb {
+  background-color: rgba(247, 245, 240, 0.2);
+}
+
+/* Signature : ticker hairline animé, très discret, sous le header */
+.ticker-rule {
+  position: relative;
+  height: 1px;
+  overflow: hidden;
+  background: theme("colors.ledger.line");
+}
+.dark .ticker-rule {
+  background: rgba(247, 245, 240, 0.12);
+}
+.ticker-rule::after {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: -20%;
+  width: 20%;
+  height: 100%;
+  background: theme("colors.ledger.gold");
+  animation: ticker-move 5s linear infinite;
+}
+@keyframes ticker-move {
+  0% {
+    left: -20%;
+  }
+  100% {
+    left: 100%;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ticker-rule::after {
+    animation: none;
+    left: 0;
+    width: 100%;
+    opacity: 0.4;
+  }
+}
+
+/* Indicateur "typing" — trois points en respiration lente */
+.typing-dot {
+  animation: typing-breathe 1.2s ease-in-out infinite;
+}
+.typing-dot:nth-child(2) {
+  animation-delay: 0.15s;
+}
+.typing-dot:nth-child(3) {
+  animation-delay: 0.3s;
+}
+@keyframes typing-breathe {
+  0%,
+  60%,
+  100% {
+    opacity: 0.25;
+    transform: translateY(0);
+  }
+  30% {
+    opacity: 1;
+    transform: translateY(-1px);
+  }
+}
+
+/* Focus clavier visible (accessibilité) */
+:focus-visible {
+  outline: 2px solid theme("colors.ledger.gold");
+  outline-offset: 2px;
+}
